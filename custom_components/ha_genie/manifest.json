@@ -12,5 +12,5 @@
     "google-genai>=1.0.0"
   ],
   "icon": "mdi:genie-lamp",
-  "version": "1.0.9"
+  "version": "1.1.1"
 }

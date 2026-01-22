@@ -49,7 +49,27 @@ class HAGenieSummarySensor(HAGenieBaseSensor):
     @property
     def extra_state_attributes(self):
         if self.coordinator.data:
-            return self.coordinator.data["analysis"]
+            data = self.coordinator.data.get("data", {})
+            house = data.get("house_details", {})
+            
+            attrs = {
+                "house_bedrooms": house.get("bedrooms"),
+                "house_sqm": house.get("size_sqm"),
+                "house_residents": house.get("residents"),
+                "house_location": house.get("country"),
+                "house_details": house.get("info"),
+            }
+            
+            # Merge with analysis (which might be a string or dict, handle carefully)
+            # Based on previous code: return self.coordinator.data["analysis"]
+            # But analysis is likely the JSON payload from Gemini?
+            # Actually, standard usage is that 'analysis' is the dict of attributes derived from Gemini response?
+            # Let's check coordinator.py again if I need to be sure, but assuming it is a dict:
+            analysis = self.coordinator.data.get("analysis")
+            if isinstance(analysis, dict):
+                attrs.update(analysis)
+            
+            return attrs
         return {}
 
 
