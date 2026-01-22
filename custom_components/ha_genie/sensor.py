@@ -65,10 +65,16 @@ class HAGenieSummarySensor(HAGenieBaseSensor):
             # But analysis is likely the JSON payload from Gemini?
             # Actually, standard usage is that 'analysis' is the dict of attributes derived from Gemini response?
             # Let's check coordinator.py again if I need to be sure, but assuming it is a dict:
+            # Merge with analysis (which might be a string or dict, handle carefully)
+            # Based on previous code: return self.coordinator.data["analysis"]
+            # But analysis is likely the JSON payload from Gemini?
+            # Actually, standard usage is that 'analysis' is the dict of attributes derived from Gemini response?
+            # Let's check coordinator.py again if I need to be sure, but assuming it is a dict:
             analysis = self.coordinator.data.get("analysis")
             if isinstance(analysis, dict):
                 attrs.update(analysis)
             
+            _LOGGER.debug("Setting genie_summary attributes: %s", attrs)
             return attrs
         return {}
 
