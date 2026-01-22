@@ -72,23 +72,43 @@ This integration is designed with **Data Minimisation** principles:
 
 **Data Controller**: You are the data controller. Google acts as the processor for the AI generation. Please review [Google's Generative AI Terms of Service](https://policies.google.com/terms).
 
-## Example Automation
+## Automations & Services
 
-Receive a notification on your phone when a new report is ready:
+### Services
 
+You can manually trigger a health report update (instead of waiting for the 24h cycle) using the service `ha_genie.generate_report`.
+
+### Automations
+
+The integration exposes a discoverable "Device Trigger" for automations:
+- **Trigger**: "Report Ready" (Fires when a new analysis is completed)
+
+Example:
 ```yaml
 automation:
   - alias: "HA Genie Report Notification"
     trigger:
-      - platform: event
-        event_type: ha_genie_report_ready
+      - platform: device
+        domain: ha_genie
+        device_id: <YOUR_DEVICE_ID>
+        type: report_ready
     action:
       - service: notify.mobile_app_my_phone
         data:
           title: "Home Health: {{ trigger.event.data.status }}"
           message: "{{ trigger.event.data.summary }}"
-          data:
-            url: "/lovelace/energy"     
+```
+
+### Legacy Events
+For backward compatibility, the integration still fires the `ha_genie_report_ready` event directly.
+
+```yaml
+automation:
+  - alias: "Legacy Event Automation"
+    trigger:
+      - platform: event
+        event_type: ha_genie_report_ready
+    ...
 ```
 
 ## Troubleshooting
