@@ -12,11 +12,11 @@ from .const import DOMAIN
 
 _LOGGER = logging.getLogger(__name__)
 
-TRIGGER_TYPE_REPORT_READY = "report_ready"
+TRIGGER_TYPE_REPORT_COMPLETED = "report_completed"
 
 TRIGGER_SCHEMA = DEVICE_TRIGGER_BASE_SCHEMA.extend(
     {
-        vol.Required("type"): TRIGGER_TYPE_REPORT_READY,
+        vol.Required("type"): TRIGGER_TYPE_REPORT_COMPLETED,
     }
 )
 
@@ -27,7 +27,8 @@ async def async_get_triggers(hass: HomeAssistant, device_id: str):
             "platform": "device",
             "domain": DOMAIN,
             "device_id": device_id,
-            "type": TRIGGER_TYPE_REPORT_READY,
+            "type": TRIGGER_TYPE_REPORT_COMPLETED,
+            "subtype": "weekly_report",
         }
     ]
 
@@ -42,6 +43,10 @@ async def async_attach_trigger(
         {
             event_trigger.CONF_PLATFORM: "event",
             event_trigger.CONF_EVENT_TYPE: f"{DOMAIN}_report_ready",
+            # This ensures the trigger filters by device_id matching the config
+            event_trigger.CONF_EVENT_DATA: {
+                "device_id": config["device_id"]
+            }
         }
     )
     return await event_trigger.async_attach_trigger(

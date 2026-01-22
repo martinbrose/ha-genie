@@ -91,7 +91,7 @@ automation:
       - platform: device
         domain: ha_genie
         device_id: <YOUR_DEVICE_ID>
-        type: report_ready
+        type: report_completed
     action:
       - service: notify.mobile_app_my_phone
         data:

@@ -9,6 +9,7 @@ from google.genai import types
 
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from homeassistant.util import dt as dt_util
+from homeassistant.helpers import device_registry as dr
 
 from .const import (
     DOMAIN, 
@@ -64,11 +65,22 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         
         analysis_json = await self.call_gemini(payload_data)
         
+        # Get Device ID for this config entry
+        try:
+            device_registry = dr.async_get(self.hass)
+            device_entry = device_registry.async_get_device(identifiers={(DOMAIN, self.config.entry_id)})
+            device_id = device_entry.id if device_entry else None
+        except Exception as e:
+            _LOGGER.warning("Could not find device for report event: %s", e)
+            device_id = None
+        
         # Fire an event that automations can listen to for notifications
+        # Including device_id allows device triggers to filter correct events
         self.hass.bus.async_fire(f"{DOMAIN}_report_ready", {
             "summary": analysis_json.get("comparison", "Report Ready"),
             "status": analysis_json.get("status"),
-            "alerts": len(analysis_json.get("bad_points", []))
+            "alerts": len(analysis_json.get("bad_points", [])),
+            "device_id": device_id
         })
         
         return {
