@@ -78,7 +78,7 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 selector.EntitySelectorConfig(domain="sensor", device_class="carbon_dioxide", multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_VOC): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor", device_class="volatile_organic_compounds", multiple=True)
+                selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_CONTACT): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="binary_sensor", device_class="door", multiple=True)
@@ -90,7 +90,7 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 selector.EntitySelectorConfig(domain="sensor", device_class="energy", multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_GAS): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor", device_class="gas", multiple=True)
+                selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
         })
 
@@ -158,7 +158,7 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
                 selector.EntitySelectorConfig(domain="sensor", device_class="carbon_dioxide", multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_VOC, default=get_default(CONF_ENTITIES_VOC, [])): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor", device_class="volatile_organic_compounds", multiple=True)
+                selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_CONTACT, default=get_default(CONF_ENTITIES_CONTACT, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="binary_sensor", device_class="door", multiple=True)
@@ -170,7 +170,7 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
                 selector.EntitySelectorConfig(domain="sensor", device_class="energy", multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_GAS, default=get_default(CONF_ENTITIES_GAS, [])): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="sensor", device_class="gas", multiple=True)
+                selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
         })
 
