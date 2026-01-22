@@ -49,10 +49,10 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Schema for user input
         data_schema = vol.Schema({
-            vol.Required(CONF_GEMINI_API_KEY): str,
+            vol.Required(CONF_GEMINI_API_KEY): cv.string,
             vol.Required(CONF_HOUSE_BEDROOMS, default=DEFAULT_HOUSE_BEDROOMS): int,
             vol.Required(CONF_HOUSE_SIZE, default=DEFAULT_HOUSE_SIZE): int,
-            vol.Required(CONF_HOUSE_COUNTRY, default=DEFAULT_HOUSE_COUNTRY): str,
+            vol.Required(CONF_HOUSE_COUNTRY, default="UK"): cv.string,
             
             # Entity Selectors
             vol.Optional(CONF_ENTITIES_TEMP): selector.EntitySelector(
@@ -122,10 +122,10 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
             return current_config.get(key, fallback)
 
         data_schema = vol.Schema({
-            vol.Required(CONF_GEMINI_API_KEY, default=get_default(CONF_GEMINI_API_KEY)): str,
+            vol.Required(CONF_GEMINI_API_KEY, default=get_default(CONF_GEMINI_API_KEY)): cv.string,
             vol.Required(CONF_HOUSE_BEDROOMS, default=get_default(CONF_HOUSE_BEDROOMS, 3)): int,
             vol.Required(CONF_HOUSE_SIZE, default=get_default(CONF_HOUSE_SIZE, 150)): int,
-            vol.Required(CONF_HOUSE_COUNTRY, default=get_default(CONF_HOUSE_COUNTRY, "UK")): str,
+            vol.Required(CONF_HOUSE_COUNTRY, default=get_default(CONF_HOUSE_COUNTRY, "UK")): cv.string,
             
             vol.Optional(CONF_ENTITIES_TEMP, default=get_default(CONF_ENTITIES_TEMP, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor", multiple=True)
