@@ -2,7 +2,7 @@
 import logging
 import json
 import asyncio
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import google.genai as genai
 from google.genai import types
@@ -104,10 +104,14 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         
         house_details = data.get('house_details', {})
         country = house_details.get('country', 'User Location')
+        current_month = datetime.now().strftime("%B")
         
         prompt = f"""
         You are an expert home energy and health analyst.
-        Analyse this weekly Home Assistant data for a 3-bedroom, 150 sqm home in {country} (unless specified otherwise in data).
+        Analyse this weekly Home Assistant data for a {house_details.get('bedrooms')} bedroom, {house_details.get('size_sqm')} sqm home in {country} (unless specified otherwise in data).
+        There are {house_details.get('residents', 2)} residents living in the home.
+        Additional House Info: {house_details.get('info', 'None')}
+        Current Month: {current_month}
         
         House Details: {house_details}
         Data (Weekly Aggregates): {json.dumps(data.get('sensor_aggregates', {}), indent=2)}
@@ -121,7 +125,7 @@ class HAGenieCoordinator(DataUpdateCoordinator):
            Cite local energy authorities if possible (e.g. Ofgem for UK, EIA for US, etc.).
            Verify numerical comparisons carefully. 
            Consider regional exceptions.
-           Hedge statements: "estimated to be", "subject to variables", "indicative only".
+           Hedge statements: "estimated to be", "subject to variables", "indicative only", "seasonal estimate for {current_month}".
         - "suggestions": (list of strings) Actionable advice.
         
         Do not include markdown code blocks.

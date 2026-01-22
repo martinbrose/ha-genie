@@ -27,6 +27,9 @@ from .const import (
     DEFAULT_HOUSE_BEDROOMS,
     DEFAULT_HOUSE_SIZE,
     DEFAULT_HOUSE_COUNTRY,
+    CONF_HOUSE_RESIDENTS,
+    DEFAULT_HOUSE_RESIDENTS,
+    CONF_HOUSE_INFO,
     CONF_UPDATE_FREQUENCY,
     FREQUENCY_DAILY,
     FREQUENCY_WEEKLY,
@@ -57,6 +60,8 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_HOUSE_BEDROOMS, default=DEFAULT_HOUSE_BEDROOMS): int,
             vol.Required(CONF_HOUSE_SIZE, default=DEFAULT_HOUSE_SIZE): int,
             vol.Required(CONF_HOUSE_COUNTRY, default="UK"): cv.string,
+            vol.Required(CONF_HOUSE_RESIDENTS, default=DEFAULT_HOUSE_RESIDENTS): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),
+            vol.Optional(CONF_HOUSE_INFO): cv.string,
             vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_UPDATE_FREQUENCY): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],
@@ -138,6 +143,8 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(CONF_HOUSE_BEDROOMS, default=get_default(CONF_HOUSE_BEDROOMS, 3)): int,
             vol.Required(CONF_HOUSE_SIZE, default=get_default(CONF_HOUSE_SIZE, 150)): int,
             vol.Required(CONF_HOUSE_COUNTRY, default=get_default(CONF_HOUSE_COUNTRY, "UK")): cv.string,
+            vol.Required(CONF_HOUSE_RESIDENTS, default=get_default(CONF_HOUSE_RESIDENTS, DEFAULT_HOUSE_RESIDENTS)): vol.All(vol.Coerce(int), vol.Range(min=1, max=10)),
+            vol.Optional(CONF_HOUSE_INFO, default=get_default(CONF_HOUSE_INFO, "")): cv.string,
             vol.Required(CONF_UPDATE_FREQUENCY, default=get_default(CONF_UPDATE_FREQUENCY, DEFAULT_UPDATE_FREQUENCY)): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],

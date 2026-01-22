@@ -26,7 +26,10 @@ from .const import (
     CONF_ENTITIES_GAS,
     CONF_HOUSE_BEDROOMS,
     CONF_HOUSE_SIZE,
-    CONF_HOUSE_COUNTRY
+    CONF_HOUSE_SIZE,
+    CONF_HOUSE_COUNTRY,
+    CONF_HOUSE_RESIDENTS,
+    CONF_HOUSE_INFO
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -126,6 +129,8 @@ def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Di
         "house_details": {
             "bedrooms": config.get(CONF_HOUSE_BEDROOMS),
             "size_sqm": config.get(CONF_HOUSE_SIZE),
+            "residents": config.get(CONF_HOUSE_RESIDENTS),
+            "info": config.get(CONF_HOUSE_INFO),
             "country": config.get(CONF_HOUSE_COUNTRY),
         },
         "sensor_aggregates": {},

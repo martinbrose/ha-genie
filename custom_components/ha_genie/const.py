@@ -5,6 +5,8 @@ CONF_GEMINI_API_KEY = "gemini_api_key"
 CONF_HOUSE_BEDROOMS = "house_bedrooms"
 CONF_HOUSE_SIZE = "house_size"
 CONF_HOUSE_COUNTRY = "house_country"
+CONF_HOUSE_RESIDENTS = "house_residents"
+CONF_HOUSE_INFO = "house_info"
 
 # Entity Selectors
 CONF_ENTITIES_TEMP = "entities_temp"
@@ -19,6 +21,7 @@ CONF_ENTITIES_GAS = "entities_gas"
 
 DEFAULT_HOUSE_BEDROOMS = 3
 DEFAULT_HOUSE_SIZE = 150
+DEFAULT_HOUSE_RESIDENTS = 2
 DEFAULT_HOUSE_COUNTRY = ""
 
 CONF_UPDATE_FREQUENCY = "update_frequency"
