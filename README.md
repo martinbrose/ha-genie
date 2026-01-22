@@ -37,8 +37,6 @@ HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) a
 
 ## Configuration
 
-**Note**: This integration is configured via the UI. `configuration.yaml` is not supported.
-
 1.  Go to **Settings** > **Devices & Services**.
 2.  Click **Add Integration** and search for "HA Genie".
 3.  **API Key**: Enter your Google Gemini API Key.
@@ -47,6 +45,9 @@ HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) a
     -   Bedrooms: Used to estimate typical usage.
     -   Size (sqm): Used to contextuallise heating loads.
 5.  **Entities**: Select the sensors you wish to include in the analysis.
+
+> [!NOTE]
+> You can change these settings later by clicking **Configure** on the integration card.
 
 ## Costs & Limits
 

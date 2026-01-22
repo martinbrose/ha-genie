@@ -110,12 +110,13 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_user(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
-             return self.async_create_entry(title="", data=user_input)
+             # Update the main config entry with the new data
+             self.hass.config_entries.async_update_entry(self.config_entry, data=user_input)
+             # Reload the integration to pick up changes immediately
+             await self.hass.config_entries.async_reload(self.config_entry.entry_id)
+             return self.async_create_entry(title="", data={})
 
         # Allow updating the configuration
-        # For simplicity, reproducing the main schema but initializing with current values
-        # Note: In a real app, you might split this or handle defaults dynamically based on entry.data
-        
         current_config = self.config_entry.data
         
         # Helper to get default
@@ -131,10 +132,34 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Optional(CONF_ENTITIES_TEMP, default=get_default(CONF_ENTITIES_TEMP, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor", multiple=True)
             ),
-            # Repeat for others... simplifying for brevity in this step, but in production code I'd add all
-             vol.Optional(CONF_ENTITIES_ENERGY, default=get_default(CONF_ENTITIES_ENERGY, [])): selector.EntitySelector(
+            vol.Optional(CONF_ENTITIES_HUMIDITY, default=get_default(CONF_ENTITIES_HUMIDITY, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="humidity", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_RADON, default=get_default(CONF_ENTITIES_RADON, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_CO2, default=get_default(CONF_ENTITIES_CO2, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="carbon_dioxide", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_VOC, default=get_default(CONF_ENTITIES_VOC, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="volatile_organic_compounds", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_CONTACT, default=get_default(CONF_ENTITIES_CONTACT, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="binary_sensor", device_class="door", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_VALVES, default=get_default(CONF_ENTITIES_VALVES, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="climate", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_ENERGY, default=get_default(CONF_ENTITIES_ENERGY, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor", device_class="energy", multiple=True)
+            ),
+            vol.Optional(CONF_ENTITIES_GAS, default=get_default(CONF_ENTITIES_GAS, [])): selector.EntitySelector(
+                selector.EntitySelectorConfig(domain="sensor", device_class="gas", multiple=True)
             ),
         })
 
-        return self.async_show_form(step_id="user", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="user", 
+            data_schema=data_schema,
+            description_placeholders={"warning": "Changing entities will reload the integration."}
+        )
