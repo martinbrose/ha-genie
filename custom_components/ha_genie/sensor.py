@@ -20,26 +20,17 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     ], True)
 
 
-class HAGenieBaseSensor(SensorEntity):
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
+
+class HAGenieBaseSensor(CoordinatorEntity, SensorEntity):
     """Base class for HA Genie sensors."""
     
     def __init__(self, coordinator):
-        self.coordinator = coordinator
+        super().__init__(coordinator)
         self._attr_has_entity_name = True
 
-    @property
-    def available(self):
-        return self.coordinator.last_update_success
-
-    async def async_added_to_hass(self):
-        """When entity is added to hass."""
-        self.async_on_remove(
-            self.coordinator.async_add_listener(self.async_write_ha_state)
-        )
-    
-    async def async_update(self):
-        """Update the sensor."""
-        await self.coordinator.async_request_refresh()
+    # CoordinatorEntity handles available, async_added_to_hass, and should_poll=False automatically
+    # We do NOT implement async_update, as that would cause polling loops.
 
 
 class HAGenieSummarySensor(HAGenieBaseSensor):
