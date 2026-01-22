@@ -5,8 +5,15 @@ import asyncio
 from datetime import timedelta
 import voluptuous as vol
 
-import google.generativeai as genai
-from google.api_core import exceptions as google_exceptions
+# SDK Migration: Migrated from google-generativeai to google-genai to fix protobuf < 5.0.0 conflict
+# Previous implementation used genai.GenerativeModel.generate_content
+# New implementation uses client.models.generate_content with "gemini-2.0-flash" (or similar)
+
+import google.genai as genai
+from google.genai import types
+# google.api_core exceptions might still be relevant if used by the new SDK under the hood for some errors,
+# but usually it has its own errors. For simply catching "Exception", we can rely on standard Exception or
+# check SDK docs. For now, catching Exception is safe fallback.
 
 from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
@@ -62,9 +69,8 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         self.config = config
         self.api_key = api_key
         
-        # Configure the SDK
-        genai.configure(api_key=self.api_key)
-        self.model = genai.GenerativeModel('gemini-pro')
+        # Configure the SDK (New Syntax)
+        self.client = genai.Client(api_key=self.api_key)
 
     async def _async_update_data(self):
         """Fetch data and call Gemini."""
@@ -97,7 +103,7 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         }
 
     async def call_gemini(self, data):
-        """Call Google Gemini API using SDK."""
+        """Call Google Gemini API using new SDK."""
         
         house_details = data.get('house_details', {})
         country = house_details.get('country', 'User Location')
@@ -125,10 +131,15 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         """
         
         try:
+            # new SDK call structure
+            # model='gemini-2.0-flash' is a good default for the next gen SDK
             response = await self.hass.async_add_executor_job(
-                self.model.generate_content, 
-                prompt
+                self.client.models.generate_content,
+                model='gemini-2.0-flash',
+                contents=prompt
             )
+            
+            # SDK should return an object where .text is the response content
             text = response.text.strip()
             
             if text.startswith("```json"):
