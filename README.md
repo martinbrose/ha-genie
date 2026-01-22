@@ -44,6 +44,7 @@ HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) a
 4.  **House Details**:
     -   Bedrooms: Used to estimate typical usage.
     -   Size (sqm): Used to contextuallise heating loads.
+    -   **Update Frequency**: Choose between 'Weekly' (every 7 days) or 'Daily' (every 24 hours). Default is Weekly.
 5.  **Entities**: Select the sensors you wish to include in the analysis.
 
 > [!NOTE]

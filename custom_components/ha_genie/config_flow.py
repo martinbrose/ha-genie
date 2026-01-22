@@ -27,6 +27,10 @@ from .const import (
     DEFAULT_HOUSE_BEDROOMS,
     DEFAULT_HOUSE_SIZE,
     DEFAULT_HOUSE_COUNTRY,
+    CONF_UPDATE_FREQUENCY,
+    FREQUENCY_DAILY,
+    FREQUENCY_WEEKLY,
+    DEFAULT_UPDATE_FREQUENCY,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -53,6 +57,12 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_HOUSE_BEDROOMS, default=DEFAULT_HOUSE_BEDROOMS): int,
             vol.Required(CONF_HOUSE_SIZE, default=DEFAULT_HOUSE_SIZE): int,
             vol.Required(CONF_HOUSE_COUNTRY, default="UK"): cv.string,
+            vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_UPDATE_FREQUENCY): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],
+                    mode=selector.SelectSelectorMode.DROPDOWN
+                )
+            ),
             
             # Entity Selectors
             vol.Optional(CONF_ENTITIES_TEMP): selector.EntitySelector(
@@ -128,6 +138,12 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(CONF_HOUSE_BEDROOMS, default=get_default(CONF_HOUSE_BEDROOMS, 3)): int,
             vol.Required(CONF_HOUSE_SIZE, default=get_default(CONF_HOUSE_SIZE, 150)): int,
             vol.Required(CONF_HOUSE_COUNTRY, default=get_default(CONF_HOUSE_COUNTRY, "UK")): cv.string,
+            vol.Required(CONF_UPDATE_FREQUENCY, default=get_default(CONF_UPDATE_FREQUENCY, DEFAULT_UPDATE_FREQUENCY)): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],
+                    mode=selector.SelectSelectorMode.DROPDOWN
+                )
+            ),
             
             vol.Optional(CONF_ENTITIES_TEMP, default=get_default(CONF_ENTITIES_TEMP, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="sensor", multiple=True)

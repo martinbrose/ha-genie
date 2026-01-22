@@ -22,7 +22,10 @@ from .const import (
     CONF_ENTITIES_VOC,
     CONF_ENTITIES_CONTACT,
     CONF_ENTITIES_VALVES,
-    CONF_ENTITIES_GAS
+    CONF_ENTITIES_GAS,
+    CONF_UPDATE_FREQUENCY,
+    FREQUENCY_DAILY,
+    DEFAULT_UPDATE_FREQUENCY
 )
 from .data import aggregate_data, get_history_data
 
@@ -35,11 +38,19 @@ class HAGenieCoordinator(DataUpdateCoordinator):
 
     def __init__(self, hass, config, api_key):
         """Initialize."""
+        # Determine update interval
+        frequency = config.get(CONF_UPDATE_FREQUENCY, DEFAULT_UPDATE_FREQUENCY)
+        if frequency == FREQUENCY_DAILY:
+            interval = timedelta(hours=24)
+        else:
+            # Default to Weekly
+            interval = timedelta(days=7)
+            
         super().__init__(
             hass,
             _LOGGER,
             name="HA Genie",
-            update_interval=SCAN_INTERVAL,
+            update_interval=interval,
         )
         self.config = config
         self.api_key = api_key
