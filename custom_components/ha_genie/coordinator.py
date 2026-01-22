@@ -116,16 +116,22 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         House Details: {house_details}
         Data (Weekly Aggregates): {json.dumps(data.get('sensor_aggregates', {}), indent=2)}
         
+        IMPORTANT INSTRUCTIONS:
+        1. You MUST heavily adjust benchmarks for the current month (currently {current_month}). 
+           - For example, January gas consumption in the UK is typically 2.5-3.5x higher than summer levels.
+           - Do NOT use a flat annual average broken down to weekly unless no seasonal data is available.
+        2. Treat the following house information as authoritative and mandatory: {house_details.get('info', 'None')}.
+           - If features like "electric underfloor heating" are present, explicitly cite them as reasons for higher consumption.
+        
         Provide the output EXCLUSIVELY in valid JSON format with the following keys:
         - "status": (string) "Good", "Fair", or "Needs Attention"
-        - "good_points": (list of strings) Key positive trends (e.g., "Stable 18-21°C temperatures").
-        - "bad_points": (list of strings) Issues or concerns (e.g., "High humidity >60% risking mould").
+        - "good_points": (list of strings) Key positive trends.
+        - "bad_points": (list of strings) Issues or concerns.
         - "comparison": (string) detailed comparison text.
-           Compare against typical averages for **{country}**.
-           Cite local energy authorities if possible (e.g. Ofgem for UK, EIA for US, etc.).
-           Verify numerical comparisons carefully. 
-           Consider regional exceptions.
-           Hedge statements: "estimated to be", "subject to variables", "indicative only", "seasonal estimate for {current_month}".
+           - Compare against typical averages for **{country}** ADJUSTED for {current_month}.
+           - Cite local energy authorities if possible (e.g. Ofgem for UK, EIA for US).
+           - Always state when you are using seasonal adjustment.
+           - Hedge statements: "estimated to be", "subject to variables", "indicative only", "seasonal estimate for {current_month}".
         - "suggestions": (list of strings) Actionable advice.
         
         Do not include markdown code blocks.
@@ -135,6 +141,8 @@ class HAGenieCoordinator(DataUpdateCoordinator):
             # new SDK call structure
             # model='gemini-2.0-flash' is a good default for the next gen SDK
             
+            _LOGGER.debug("Generated Prompt for Gemini: %s", prompt)
+
             def _sync_call():
                 _LOGGER.debug("Starting Gemini API call with model gemini-2.0-flash")
                 return self.client.models.generate_content(
