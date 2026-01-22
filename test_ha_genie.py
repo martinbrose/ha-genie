@@ -27,7 +27,7 @@ sys.modules['homeassistant.helpers.update_coordinator'].DataUpdateCoordinator = 
 sys.modules['homeassistant.util'] = MagicMock()
 sys.modules['homeassistant.util.dt'] = MagicMock()
 sys.modules['google'] = MagicMock()
-sys.modules['google.generativeai'] = MagicMock()
+sys.modules['google.genai'] = MagicMock()
 sys.modules['google.api_core'] = MagicMock()
 sys.modules['google.api_core.exceptions'] = MagicMock()
 sys.modules['voluptuous'] = MagicMock()
@@ -103,7 +103,7 @@ class TestCoordinator(unittest.IsolatedAsyncioTestCase):
         
         # Use AsyncMock for the history function since it is awaited
         with patch('custom_components.ha_genie.sensor.get_history_data', new_callable=AsyncMock) as mock_history, \
-             patch.object(coordinator, 'model') as mock_model:
+             patch('google.genai.Client') as MockClient:
             
             # Setup Mock History
             mock_history.return_value = {
@@ -120,10 +120,33 @@ class TestCoordinator(unittest.IsolatedAsyncioTestCase):
                 "suggestions": []
             })
             
-            # hass.async_add_executor_job is awaited. It needs to be an async mock or return a future
-            # But wait, self.hass is a MagicMock from the setup
-            # We need to configure it to be awaitable or return something awaitable
+            # Setup Client Mock
+            mock_client_instance = MockClient.return_value
+            # For the coordinator to pick up our mock client, we might need to patch where it's instantiated
+            # or mock the genai.Client constructor.
+            # We patched 'google.genai.Client' so when h_a_g.sensor imports and calls Client(), it gets our mock.
+            # inside sensor: self.client = genai.Client(...)
             
+            # The code calls: self.client.models.generate_content(...)
+            # So we need mock_client_instance.models.generate_content to be what matches the executor call target?
+            # Actually, executor calls the function.
+            
+            # Let's verify what we are patching.
+            # In sensor.py: import google.genai as genai -> genai.Client
+            
+            # We need to ensure that the coordinator uses our mock client.
+            # Since we are testing logic inside coordinator that we instantiate:
+            coordinator = HAGenieCoordinator(hass, config, "fake_key")
+            # But wait, coordinator init calls genai.Client
+            # So we need to patch it BEFORE init or patch it globally for the module.
+            # The context manager above does patch it globally in the scope of `with`.
+            # But we instantiated coordinator BEFORE the `with` block in the previous code structure!
+            pass # placeholder for logic adjustment
+            
+            # Move coordinator init INSIDE the patch block
+            coordinator = HAGenieCoordinator(hass, config, "fake_key")
+
+            # hass.async_add_executor_job is awaited. It needs to be an async mock or return a future
             
             captured_args = []
             async def fake_executor_job(target, *args, **kwargs):
@@ -137,8 +160,15 @@ class TestCoordinator(unittest.IsolatedAsyncioTestCase):
             
             # VERIFY PRIVACY: Check what was passed to generate_content
             # captured_args[0] is (target, args, kwargs)
-            # args is (prompt,)
-            prompt_sent = captured_args[0][1][0] 
+            # prompt is now in kwargs['contents']
+            # Let's check what was captured
+            actual_call = captured_args[0]
+            kwargs_sent = actual_call[2]
+            prompt_sent = kwargs_sent.get('contents')
+            
+            # If prompt wasn't in kwargs, check positional args (though we used keyword in sensor.py)
+            if not prompt_sent and actual_call[1]:
+                 prompt_sent = actual_call[1][0]
             
             self.assertNotIn("raw_sample_debug", prompt_sent)
             self.assertIn("temperature_avg", prompt_sent)
