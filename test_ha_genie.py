@@ -103,7 +103,9 @@ class TestCoordinator(unittest.IsolatedAsyncioTestCase):
         
         # Use AsyncMock for the history function since it is awaited
         with patch('custom_components.ha_genie.sensor.get_history_data', new_callable=AsyncMock) as mock_history, \
-             patch('google.genai.Client') as MockClient:
+             patch('custom_components.ha_genie.sensor.genai') as MockGenaiModule:
+             
+            MockClient = MockGenaiModule.Client
             
             # Setup Mock History
             mock_history.return_value = {
@@ -148,27 +150,24 @@ class TestCoordinator(unittest.IsolatedAsyncioTestCase):
 
             # hass.async_add_executor_job is awaited. It needs to be an async mock or return a future
             
-            captured_args = []
+            # Since we wrapped the call in a local function, we check the client mock instead of captured args
+            # We need fake_executor_job to actually CALL the function passed to it
             async def fake_executor_job(target, *args, **kwargs):
-                captured_args.append((target, args, kwargs))
-                return mock_response
+                return target(*args, **kwargs)
             
             hass.async_add_executor_job = fake_executor_job
+            
+            # We need the client mock to return our response when generate_content is called
+            mock_client_instance.models.generate_content.return_value = mock_response
 
             # Run Update
             result = await coordinator._async_update_data()
             
-            # VERIFY PRIVACY: Check what was passed to generate_content
-            # captured_args[0] is (target, args, kwargs)
-            # prompt is now in kwargs['contents']
-            # Let's check what was captured
-            actual_call = captured_args[0]
-            kwargs_sent = actual_call[2]
-            prompt_sent = kwargs_sent.get('contents')
-            
-            # If prompt wasn't in kwargs, check positional args (though we used keyword in sensor.py)
-            if not prompt_sent and actual_call[1]:
-                 prompt_sent = actual_call[1][0]
+            # VERIFY PRIVACY: Check what was passed to generate_content on the client mock
+            # Get the call args of generate_content
+            # call_args is (args, kwargs)
+            call_kwargs = mock_client_instance.models.generate_content.call_args[1]
+            prompt_sent = call_kwargs.get('contents')
             
             self.assertNotIn("raw_sample_debug", prompt_sent)
             self.assertIn("temperature_avg", prompt_sent)

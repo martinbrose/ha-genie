@@ -133,11 +133,18 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         try:
             # new SDK call structure
             # model='gemini-2.0-flash' is a good default for the next gen SDK
-            response = await self.hass.async_add_executor_job(
-                self.client.models.generate_content,
-                model='gemini-2.0-flash',
-                contents=prompt
-            )
+            
+            def _sync_call():
+                _LOGGER.debug("Starting Gemini API call with model gemini-2.0-flash")
+                return self.client.models.generate_content(
+                    model='gemini-2.0-flash',
+                    contents=prompt
+                )
+
+            response = await self.hass.async_add_executor_job(_sync_call)
+            
+            if hasattr(response, 'text'):
+                 _LOGGER.debug("Gemini response received: %s", response.text[:200])
             
             # SDK should return an object where .text is the response content
             text = response.text.strip()
