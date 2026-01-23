@@ -30,6 +30,8 @@ from .const import (
     CONF_HOUSE_RESIDENTS,
     DEFAULT_HOUSE_RESIDENTS,
     CONF_HOUSE_INFO,
+    CONF_GEMINI_MODEL,
+    DEFAULT_GEMINI_MODEL,
     CONF_UPDATE_FREQUENCY,
     FREQUENCY_DAILY,
     FREQUENCY_WEEKLY,
@@ -57,6 +59,7 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         # Schema for user input
         data_schema = vol.Schema({
             vol.Required(CONF_GEMINI_API_KEY): cv.string,
+            vol.Required(CONF_GEMINI_MODEL, default=DEFAULT_GEMINI_MODEL): cv.string,
             vol.Required(CONF_HOUSE_BEDROOMS, default=DEFAULT_HOUSE_BEDROOMS): int,
             vol.Required(CONF_HOUSE_SIZE, default=DEFAULT_HOUSE_SIZE): int,
             vol.Required(CONF_HOUSE_COUNTRY, default="UK"): cv.string,
@@ -140,6 +143,7 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
 
         data_schema = vol.Schema({
             vol.Required(CONF_GEMINI_API_KEY, default=get_default(CONF_GEMINI_API_KEY)): cv.string,
+            vol.Required(CONF_GEMINI_MODEL, default=get_default(CONF_GEMINI_MODEL, DEFAULT_GEMINI_MODEL)): cv.string,
             vol.Required(CONF_HOUSE_BEDROOMS, default=get_default(CONF_HOUSE_BEDROOMS, 3)): int,
             vol.Required(CONF_HOUSE_SIZE, default=get_default(CONF_HOUSE_SIZE, 150)): int,
             vol.Required(CONF_HOUSE_COUNTRY, default=get_default(CONF_HOUSE_COUNTRY, "UK")): cv.string,

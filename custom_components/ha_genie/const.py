@@ -7,6 +7,7 @@ CONF_HOUSE_SIZE = "house_size"
 CONF_HOUSE_COUNTRY = "house_country"
 CONF_HOUSE_RESIDENTS = "house_residents"
 CONF_HOUSE_INFO = "house_info"
+CONF_GEMINI_MODEL = "gemini_model"
 
 # Entity Selectors
 CONF_ENTITIES_TEMP = "entities_temp"
@@ -23,6 +24,7 @@ DEFAULT_HOUSE_BEDROOMS = 3
 DEFAULT_HOUSE_SIZE = 150
 DEFAULT_HOUSE_RESIDENTS = 2
 DEFAULT_HOUSE_COUNTRY = ""
+DEFAULT_GEMINI_MODEL = "gemini-1.5-pro"
 
 CONF_UPDATE_FREQUENCY = "update_frequency"
 FREQUENCY_DAILY = "Daily"

@@ -14,6 +14,8 @@ from homeassistant.helpers import device_registry as dr
 from .const import (
     DOMAIN, 
     CONF_GEMINI_API_KEY,
+    CONF_GEMINI_MODEL,
+    DEFAULT_GEMINI_MODEL,
     CONF_ENTITIES_TEMP,
     CONF_ENTITIES_ENERGY,
     CONF_ENTITIES_HUMIDITY,
@@ -139,14 +141,14 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         
         try:
             # new SDK call structure
-            # model='gemini-2.0-flash' is a good default for the next gen SDK
+            model_name = self.config.get(CONF_GEMINI_MODEL, DEFAULT_GEMINI_MODEL)
             
             _LOGGER.debug("Generated Prompt for Gemini: %s", prompt)
+            _LOGGER.debug("Using Gemini model: %s", model_name)
 
             def _sync_call():
-                _LOGGER.debug("Starting Gemini API call with model gemini-2.0-flash")
                 return self.client.models.generate_content(
-                    model='gemini-2.0-flash',
+                    model=model_name,
                     contents=prompt
                 )
 
