@@ -34,15 +34,15 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-async def get_history_data(hass: HomeAssistant, entity_ids: List[str], days: int = 7) -> Dict[str, List[State]]:
-    """Fetch history data for a list of entities over the last N days.
+async def get_history_data(hass: HomeAssistant, entity_ids: List[str], duration: timedelta = timedelta(days=7)) -> Dict[str, List[State]]:
+    """Fetch history data for a list of entities over the specified duration.
     
     Returns a dictionary mapping entity_id to a list of State objects.
     """
     if not entity_ids:
         return {}
 
-    start_time = dt_util.utcnow() - timedelta(days=days)
+    start_time = dt_util.utcnow() - duration
     end_time = dt_util.utcnow()
     
     if history is None:

@@ -27,7 +27,12 @@ from .const import (
     CONF_ENTITIES_GAS,
     CONF_UPDATE_FREQUENCY,
     FREQUENCY_DAILY,
-    DEFAULT_UPDATE_FREQUENCY
+    DEFAULT_UPDATE_FREQUENCY,
+    CONF_DATA_AVERAGING,
+    DATA_AVERAGING_HOURLY,
+    DATA_AVERAGING_DAILY,
+    DATA_AVERAGING_WEEKLY,
+    DEFAULT_DATA_AVERAGING
 )
 from .data import aggregate_data, get_history_data
 
@@ -71,7 +76,19 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         ]: 
              all_entities.extend(self.config.get(key, []) or [])
         
-        history_data = await get_history_data(self.hass, all_entities, days=7)
+        # Determine averaging window
+        averaging_inv = self.config.get(CONF_DATA_AVERAGING, DEFAULT_DATA_AVERAGING)
+        if averaging_inv == DATA_AVERAGING_HOURLY:
+             averaging_window = timedelta(hours=1)
+        elif averaging_inv == DATA_AVERAGING_DAILY:
+             averaging_window = timedelta(days=1)
+        else:
+             # Default to Weekly
+             averaging_window = timedelta(days=7)
+             
+        _LOGGER.info("Sensor data averaging set to %s (window: %s)", averaging_inv, averaging_window)
+        
+        history_data = await get_history_data(self.hass, all_entities, duration=averaging_window)
         aggregated_data = aggregate_data(self.hass, self.config, history_data)
         
         payload_data = {k: v for k, v in aggregated_data.items() if k != "raw_sample_debug"}

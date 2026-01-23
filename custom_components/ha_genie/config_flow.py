@@ -36,6 +36,11 @@ from .const import (
     FREQUENCY_DAILY,
     FREQUENCY_WEEKLY,
     DEFAULT_UPDATE_FREQUENCY,
+    CONF_DATA_AVERAGING,
+    DATA_AVERAGING_HOURLY,
+    DATA_AVERAGING_DAILY,
+    DATA_AVERAGING_WEEKLY,
+    DEFAULT_DATA_AVERAGING,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -69,6 +74,16 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required(CONF_UPDATE_FREQUENCY, default=DEFAULT_UPDATE_FREQUENCY): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],
+                    mode=selector.SelectSelectorMode.DROPDOWN
+                )
+            ),
+            vol.Required(CONF_DATA_AVERAGING, default=DEFAULT_DATA_AVERAGING): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        DATA_AVERAGING_HOURLY,
+                        DATA_AVERAGING_DAILY,
+                        DATA_AVERAGING_WEEKLY
+                    ],
                     mode=selector.SelectSelectorMode.DROPDOWN
                 )
             ),
@@ -154,6 +169,16 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(CONF_UPDATE_FREQUENCY, default=get_default(CONF_UPDATE_FREQUENCY, DEFAULT_UPDATE_FREQUENCY)): selector.SelectSelector(
                 selector.SelectSelectorConfig(
                     options=[FREQUENCY_DAILY, FREQUENCY_WEEKLY],
+                    mode=selector.SelectSelectorMode.DROPDOWN
+                )
+            ),
+            vol.Required(CONF_DATA_AVERAGING, default=get_default(CONF_DATA_AVERAGING, DEFAULT_DATA_AVERAGING)): selector.SelectSelector(
+                selector.SelectSelectorConfig(
+                    options=[
+                        DATA_AVERAGING_HOURLY,
+                        DATA_AVERAGING_DAILY,
+                        DATA_AVERAGING_WEEKLY
+                    ],
                     mode=selector.SelectSelectorMode.DROPDOWN
                 )
             ),
