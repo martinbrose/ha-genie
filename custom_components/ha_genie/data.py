@@ -29,7 +29,10 @@ from .const import (
     CONF_HOUSE_SIZE,
     CONF_HOUSE_COUNTRY,
     CONF_HOUSE_RESIDENTS,
-    CONF_HOUSE_INFO
+    CONF_HOUSE_INFO,
+    DATA_AVERAGING_HOURLY,
+    DATA_AVERAGING_DAILY,
+    DATA_AVERAGING_WEEKLY
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -121,11 +124,12 @@ def calculate_attribute_mean(states: List[State], attribute: str) -> Optional[fl
     return statistics.mean(values)
 
 
-def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Dict[str, List[State]]) -> Dict[str, Any]:
+def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Dict[str, List[State]], averaging_period: str = DATA_AVERAGING_WEEKLY) -> Dict[str, Any]:
     """Aggregate raw history data into a summary JSON structure."""
     
     summary = {
-        "period_days": 7,
+        "period_days": 7, # This remains the fetch window
+        "averaging_period": averaging_period,
         "house_details": {
             "bedrooms": config.get(CONF_HOUSE_BEDROOMS),
             "size_sqm": config.get(CONF_HOUSE_SIZE),
@@ -136,7 +140,18 @@ def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Di
         "sensor_aggregates": {},
         "raw_sample_debug": {} # Kept for user request "Output sample JSON structure", normally wouldn't send to API if GDPR strict
     }
-
+    
+    # Determine binning interval
+    bin_interval = None
+    if averaging_period == DATA_AVERAGING_HOURLY:
+        bin_interval = timedelta(hours=1)
+    elif averaging_period == DATA_AVERAGING_DAILY:
+        bin_interval = timedelta(days=1)
+    
+    # Calculate global start/end for binning (approximate based on data or now)
+    end_time = dt_util.utcnow()
+    start_time = end_time - timedelta(days=7) # Fixed 7 days window for now
+    
     # Helper to process a category
     def process_category(category_key: str, entity_ids: List[str], calc_func):
         if not entity_ids:
@@ -153,16 +168,33 @@ def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Di
                     states = [state]
             
             if states:
-                val = calc_func(states)
-                if val is not None:
-                    category_data[entity_id] = round(val, 2)
+                # 1. Store debug sample
+                summary["raw_sample_debug"][entity_id] = [
+                    {"state": s.state, "time": s.last_updated.isoformat()} 
+                    for s in states[:5]
+                ]
+
+                # 2. Calculate values
+                if bin_interval:
+                    # Granular Output (List of values)
+                    bins = bin_history_data(states, start_time, end_time, bin_interval)
+                    binned_values = []
+                    for b in bins:
+                        val = calc_func(b["states"])
+                        if val is not None:
+                            # Clean timestamp for JSON (remove +00:00 for brevity if needed, but ISO is safer)
+                            binned_values.append({
+                                "start": b["start"], 
+                                "value": round(val, 2)
+                            })
+                    if binned_values:
+                         category_data[entity_id] = binned_values
+                else:
+                    # Single Aggregate Output (Backward compatible / Weekly)
+                    val = calc_func(states)
+                    if val is not None:
+                        category_data[entity_id] = round(val, 2)
                     
-                    # Store a sample of raw data (debug/verification purpose)
-                    # Limit to 5 samples to keep it readable in sample output
-                    summary["raw_sample_debug"][entity_id] = [
-                        {"state": s.state, "time": s.last_updated.isoformat()} 
-                        for s in states[:5]
-                    ]
 
         if category_data:
             summary["sensor_aggregates"][category_key] = category_data
@@ -181,10 +213,7 @@ def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Di
     # 3. Contact Sensors (Count openings)
     process_category("contact_openings_count", config.get(CONF_ENTITIES_CONTACT, []), calculate_on_count)
     
-    # 4. Radiator Valves (Average Current Temp or Setpoint? Using current_temperature)
-    # Using a lambda or partial would be cleaner but let's just make a wrapper or modify process_category.
-    # For simplicity, let's just loop here manually or make process_category flexible.
-    # Let's add a specific loop for climate to get 'current_temperature'
+    # 4. Radiator Valves (Average Current Temp)
     climate_entities = config.get(CONF_ENTITIES_VALVES, [])
     if climate_entities:
         c_data = {}
@@ -194,9 +223,25 @@ def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Di
                  state = hass.states.get(entity_id)
                  if state: states = [state]
             if states:
-                val = calculate_attribute_mean(states, "current_temperature")
-                if val is not None:
-                    c_data[entity_id] = round(val, 2)
+                 # Logic for climate binning is the same structure, just different extraction func
+                 pass # TODO: Refactor process_category to handle custom calc_func better or CP logic.
+                 # For now, let's keep it simple and just do Weekly/Single average for climate
+                 # OR duplicate the logic... duplicating is safer for strict instruction compliance now.
+                 
+                 if bin_interval:
+                    bins = bin_history_data(states, start_time, end_time, bin_interval)
+                    binned_values = []
+                    for b in bins:
+                        val = calculate_attribute_mean(b["states"], "current_temperature")
+                        if val is not None:
+                            binned_values.append({"start": b["start"], "value": round(val, 2)})
+                    if binned_values:
+                        c_data[entity_id] = binned_values
+                 else:
+                    val = calculate_attribute_mean(states, "current_temperature")
+                    if val is not None:
+                       c_data[entity_id] = round(val, 2)
+
         if c_data:
             summary["sensor_aggregates"]["radiator_temps_avg"] = c_data
 

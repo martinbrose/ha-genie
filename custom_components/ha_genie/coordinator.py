@@ -86,10 +86,12 @@ class HAGenieCoordinator(DataUpdateCoordinator):
              # Default to Weekly
              averaging_window = timedelta(days=7)
              
-        _LOGGER.info("Sensor data averaging set to %s (window: %s)", averaging_inv, averaging_window)
+        _LOGGER.info("Sensor data averaging set to %s. Fetching 7 days history.", averaging_inv)
         
-        history_data = await get_history_data(self.hass, all_entities, duration=averaging_window)
-        aggregated_data = aggregate_data(self.hass, self.config, history_data)
+        # Always fetch 7 days of history, but bin it differently
+        history_window = timedelta(days=7)
+        history_data = await get_history_data(self.hass, all_entities, duration=history_window)
+        aggregated_data = aggregate_data(self.hass, self.config, history_data, averaging_period=averaging_inv)
         
         payload_data = {k: v for k, v in aggregated_data.items() if k != "raw_sample_debug"}
         
@@ -125,6 +127,9 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         country = house_details.get('country', 'User Location')
         current_month = datetime.now().strftime("%B")
         
+        # Get averaging period for context
+        averaging_period = self.config.get(CONF_DATA_AVERAGING, DEFAULT_DATA_AVERAGING)
+        
         prompt = f"""
         You are an expert home energy and health analyst.
         Analyse this weekly Home Assistant data for a {house_details.get('bedrooms')} bedroom, {house_details.get('size_sqm')} sqm home in {country} (unless specified otherwise in data).
@@ -133,7 +138,10 @@ class HAGenieCoordinator(DataUpdateCoordinator):
         Current Month: {current_month}
         
         House Details: {house_details}
-        Data (Weekly Aggregates): {json.dumps(data.get('sensor_aggregates', {}), indent=2)}
+        Data Period: Last 7 Days
+        Data Granularity: {averaging_period} Averaging
+        
+        Data: {json.dumps(data.get('sensor_aggregates', {}), indent=2)}
         
         IMPORTANT INSTRUCTIONS:
         1. You MUST heavily adjust benchmarks for the current month (currently {current_month}). 
