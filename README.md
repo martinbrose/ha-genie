@@ -2,7 +2,7 @@
 
 **Artificial Intelligence for your Home Assistant**
 
-HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) and uses Google's Gemini API to provide weekly health and efficiency reports. It benchmarks your usage against UK averages (electricity/gas) and checks for health risks (mould/humidity, VOCs).
+HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) and uses Google's Gemini API to provide weekly health and efficiency reports. It benchmarks your usage against national averages for your selected country (e.g. UK Ofgem, US EIA) and checks for health risks (mould/humidity, VOCs).
 
 > [!WARNING]
 > **Disclaimer**: This component sends data to Google's Gemini API. By using this integration, you agree to transmit your home's aggregated sensor data to Google.
@@ -11,7 +11,7 @@ HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) a
 
 -   **Weekly Reports**: Automated analysis of the last 7 days.
 -   **Privacy Focused**: Only sends aggregated metadata (averages/totals) to Google. Raw sensor history stays local.
--   **UK Benchmarking**: Compares energy usage against typical UK households (e.g. Electricity ~2,700 kWh/yr).
+-   **Localized Benchmarking**: Compares energy usage against typical households in your selected country (e.g., UK, USA, Germany). Defaults to UK if unspecified.
 -   **3 Sensors**:
     -   `sensor.genie_summary`: Overall status and detailed attributes.
     -   `sensor.genie_insights`: Positive trends detected.
@@ -44,6 +44,7 @@ HA Genie aggregates your home's sensor data (Temperature, Energy, Air Quality) a
 4.  **House Details**:
     -   Bedrooms: Used to estimate typical usage.
     -   Size (sqm): Used to contextuallise heating loads.
+    -   **Country**: Select your country to ensure benchmarks are relevant (e.g., UK, US). Defaults to UK.
     -   **Update Frequency**: Choose between 'Weekly' (every 7 days) or 'Daily' (every 24 hours). Default is Weekly.
 5.  **Entities**: Select the sensors you wish to include in the analysis.
 
@@ -69,7 +70,7 @@ This integration is designed with **Data Minimisation** principles:
 **Data Transmitted**:
 -   Weekly sensor averages/totals.
 -   House size and bedroom count.
--   Country ("UK" by default).
+-   Country (User selected, "UK" by default).
 
 **Data Controller**: You are the data controller. Google acts as the processor for the AI generation. Please review [Google's Generative AI Terms of Service](https://policies.google.com/terms).
 
