@@ -54,6 +54,7 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if not user_input.get(CONF_GEMINI_API_KEY):
                 errors["base"] = "missing_api_key"
             else:
+                _LOGGER.debug("Config flow user input: %s", user_input)
                 return self.async_create_entry(title="HA Genie", data=user_input)
 
         # Schema for user input
@@ -89,7 +90,7 @@ class HAGenieConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_CONTACT): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="binary_sensor", device_class="door", multiple=True)
+                selector.EntitySelectorConfig(domain="binary_sensor", device_class=["door", "window"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_VALVES): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="climate", multiple=True)
@@ -128,6 +129,7 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
     async def async_step_user(self, user_input=None):
         """Manage the options."""
         if user_input is not None:
+             _LOGGER.debug("Options flow user input: %s", user_input)
              # Update the main config entry with the new data
              self.hass.config_entries.async_update_entry(self.config_entry, data=user_input)
              # Reload the integration to pick up changes immediately
@@ -172,7 +174,7 @@ class HAGenieOptionsFlowHandler(config_entries.OptionsFlow):
                 selector.EntitySelectorConfig(domain=["sensor", "binary_sensor", "climate", "air_quality", "utility_meter"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_CONTACT, default=get_default(CONF_ENTITIES_CONTACT, [])): selector.EntitySelector(
-                selector.EntitySelectorConfig(domain="binary_sensor", device_class="door", multiple=True)
+                selector.EntitySelectorConfig(domain="binary_sensor", device_class=["door", "window"], multiple=True)
             ),
             vol.Optional(CONF_ENTITIES_VALVES, default=get_default(CONF_ENTITIES_VALVES, [])): selector.EntitySelector(
                 selector.EntitySelectorConfig(domain="climate", multiple=True)
