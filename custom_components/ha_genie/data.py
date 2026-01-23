@@ -1,6 +1,6 @@
 """Data aggregation helpers for HA Genie."""
 import logging
-from datetime import timedelta
+from datetime import datetime, timedelta
 import statistics
 from typing import Any, Dict, List, Optional
 
@@ -123,7 +123,29 @@ def calculate_attribute_mean(states: List[State], attribute: str) -> Optional[fl
         return None
     return statistics.mean(values)
 
-
+def bin_history_data(states: List[State], start_time: datetime, end_time: datetime, interval: timedelta) -> List[Dict[str, Any]]:
+    """Slice history states into time intervals and return the list of states for each bin."""
+    bins = []
+    current_start = start_time
+    while current_start < end_time:
+        current_end = current_start + interval
+        if current_end > end_time:
+            current_end = end_time
+            
+        bin_states = [
+            s for s in states 
+            if current_start <= s.last_updated < current_end
+        ]
+        
+        bins.append({
+            "start": current_start.isoformat(),
+            "end": current_end.isoformat(),
+            "states": bin_states
+        })
+        
+        current_start = current_end
+        
+    return bins
 def aggregate_data(hass: HomeAssistant, config: Dict[str, Any], history_data: Dict[str, List[State]], averaging_period: str = DATA_AVERAGING_WEEKLY) -> Dict[str, Any]:
     """Aggregate raw history data into a summary JSON structure."""
     
