@@ -143,8 +143,12 @@ class HAGenieCoordinator(DataUpdateCoordinator):
             # new SDK call structure
             model_name = self.config.get(CONF_GEMINI_MODEL, DEFAULT_GEMINI_MODEL)
             
+            # Ensure model name is bare (strip 'models/' prefix if user added it)
+            if model_name.startswith("models/"):
+                 model_name = model_name.replace("models/", "")
+            
             _LOGGER.debug("Generated Prompt for Gemini: %s", prompt)
-            _LOGGER.debug("Using Gemini model: %s", model_name)
+            _LOGGER.debug("Calling Gemini with model: %s", model_name)
 
             def _sync_call():
                 return self.client.models.generate_content(
